@@ -1,27 +1,41 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyAI : MonoBehaviour
+public class AIenemy : MonoBehaviour
 {
-    public Transform[] patrolPoints;
-    private int currentPointIndex = 0;
+    public float detectionRange = 15f;
+
     private NavMeshAgent agent;
+    private Transform player;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        if (patrolPoints.Length > 0)
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObj != null)
         {
-            agent.destination = patrolPoints[currentPointIndex].position;
+            player = playerObj.transform;
+        }
+        else
+        {
+            Debug.LogError("Player not found. Make sure your player has the 'Player' tag.");
         }
     }
 
     void Update()
     {
-        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+        if (player == null) return;
+
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance <= detectionRange)
         {
-            currentPointIndex = (currentPointIndex + 1) % patrolPoints.Length;
-            agent.destination = patrolPoints[currentPointIndex].position;
+            agent.SetDestination(player.position);
+        }
+        else
+        {
+            agent.ResetPath(); // stop moving
         }
     }
 }
